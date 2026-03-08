@@ -1,0 +1,270 @@
+.gen-container {
+    padding: 20px;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.generation-layout {
+    display: grid;
+    grid-template-columns: 400px 1fr;
+    gap: 30px;
+    align-items: start;
+}
+
+/* Панель управления */
+.controls-panel {
+    background: var(--bg-card, #1e1e1e);
+    border: 1px solid var(--border, #333);
+    border-radius: 20px;
+    padding: 25px;
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+
+.panel-section h3 {
+    margin-top: 0;
+    font-size: 1.1rem;
+    color: var(--accent, #bb86fc);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-bottom: 1px solid var(--border, #333);
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+}
+
+.input-wrapper {
+    margin-bottom: 15px;
+}
+
+.input-wrapper label, .setting-item label {
+    display: block;
+    font-size: 0.85rem;
+    color: #a0a0a0;
+    margin-bottom: 8px;
+}
+
+textarea, input[type="text"], input[type="number"] {
+    width: 100%;
+    background: #121212;
+    border: 1px solid var(--border, #333);
+    border-radius: 10px;
+    color: white;
+    padding: 12px;
+    box-sizing: border-box;
+    font-family: inherit;
+    transition: border-color 0.3s;
+}
+
+textarea:focus, input:focus {
+    outline: none;
+    border-color: var(--accent, #bb86fc);
+}
+
+textarea {
+    height: 100px;
+    resize: none;
+}
+
+.settings-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+.full-width {
+    grid-column: span 2;
+}
+
+.model-select {
+    width: 100%;
+    background: #121212;
+    border: 1px solid var(--border, #333);
+    border-radius: 10px;
+    color: white;
+    padding: 12px;
+    cursor: pointer;
+    font-family: inherit;
+    appearance: none; /* Убираем стандартную стрелку браузера */
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23bb86fc' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: calc(100% - 15px) center;
+}
+
+.model-select:focus {
+    border-color: var(--accent);
+    outline: none;
+}
+
+.model-select option {
+    background: #1e1e1e;
+    color: white;
+    padding: 10px;
+}
+
+.generate-main-btn {
+    background: var(--accent, #bb86fc);
+    color: #000;
+    border: none;
+    padding: 18px;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: 0.3s;
+    margin-top: 10px;
+}
+
+.generate-main-btn:hover:not(:disabled) {
+    background: #d7b7ff;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(208, 201, 218, 0.4);
+}
+
+.generate-main-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    background: #555;
+}
+
+.preview-panel {
+    background: #0f0f0f;
+    border-radius: 24px;
+    min-height: 800px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px dashed #252525;
+    position: sticky;
+    top: 100px;
+}
+
+.result-card {
+    /* width: 100%; */
+    max-width: 512px;
+    /* max-height: 512px; */
+    animation: slideUp 0.5s ease-out;
+}
+
+.image-frame {
+    background: #000;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 30px 60px rgba(0,0,0,0.5);
+    line-height: 0;
+    max-height: 512px;
+}
+
+.image-frame img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+.result-metadata {
+    margin-top: 20px;
+    background: var(--bg-card, #1e1e1e);
+    padding: 20px;
+    border-radius: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.path-info {
+    max-width: 70%;
+}
+
+.path-text {
+    display: block;
+    font-family: monospace;
+    font-size: 0.8rem;
+    color: #888;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Стили для лоадера внутри фиксированного блока */
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: #444;
+}
+
+.progress-bar-wrap {
+    width: 250px;
+    height: 4px;
+    background: #222;
+    border-radius: 2px;
+    margin-top: 20px;
+    overflow: hidden;
+}
+
+.download-action-btn {
+    background: #333;
+    color: white;
+    text-decoration: none;
+    padding: 10px 15px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    transition: 0.3s;
+}
+
+.download-action-btn:hover {
+    background: #444;
+}
+
+.empty-state {
+    text-align: center;
+    color: #555;
+}
+
+.placeholder-icon {
+    font-size: 4rem;
+    margin-bottom: 20px;
+    opacity: 0.2;
+}
+
+.progress-bar-wrap {
+    width: 200px;
+    height: 4px;
+    background: #222;
+    margin: 20px auto;
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.progress-bar-fill {
+    width: 40%;
+    height: 100%;
+    background: var(--accent, #bb86fc);
+    animation: progressAnim 2s infinite linear;
+}
+
+@keyframes progressAnim {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(250%); }
+}
+
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.spinner {
+    width: 20px;
+    height: 20px;
+    border: 3px solid rgba(0,0,0,0.1);
+    border-top-color: #000;
+    border-radius: 50%;
+    display: inline-block;
+    animation: spin 1s infinite linear;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}

@@ -1,7 +1,8 @@
 import uvicorn
 from fastapi.middleware.cors import CORSMiddleware
 import torch
-import io
+import base64
+from io import BytesIO
 import gc
 import uuid
 import os
@@ -35,6 +36,7 @@ app.add_middleware(
 
 # Глобальная переменная для хранения моделей в памяти (чтобы не загружать их каждый раз)
 OUTPUT_DIR = "output/sd/"
+UPSCALE_DIR = "output/upscaled/"
 MODEL_DIR = "data/" # путь к моделям
 MODELS_CACHE = {}
 CURRENT_MODEL_PATH = None
@@ -55,6 +57,11 @@ class GenerateRequest(BaseModel):
     steps: int = 50
     model_path: str
     seed: Optional[int] = None 
+
+class UpscaleRequest(BaseModel):
+    image_path: str
+    upscaler_path: str = "esrgan/weights/R-ESRGAN_x4.pth"
+
 
 def get_models(model_path: str):
     """Загружает модели, если они еще не загружены или путь изменился."""
@@ -98,11 +105,8 @@ async def list_models():
 @app.post("/generate/")
 async def generate_endpoint(request: GenerateRequest):
     try:
-        # 1. Получаем/загружаем модели
         models = get_models(request.model_path)
-        
-        # 2. Запускаем генерацию
-        # Передаем параметры из вашего существующего pipeline.py
+
         output_image = generate(
             prompt=request.prompt,
             uncond_prompt=request.uncond_prompt,
@@ -122,28 +126,70 @@ async def generate_endpoint(request: GenerateRequest):
         file_path = os.path.join(OUTPUT_DIR, file_name)
 
         print(f"Saving image in path: {file_path}..", end = '\t')
-        Image.fromarray(output_image).save(file_path)
+        pil_img = Image.fromarray(output_image)
+        pil_img.save(file_path)
         print(f"Image saved.")
 
-        return FileResponse(
-            path=file_path, 
-            media_type="image/png", 
-            filename=file_name
-        )
+        buffered = BytesIO()
+        pil_img.save(buffered, format="PNG")
+        img_base64 = base64.b64encode(buffered.getvalue()).decode('utf-8')
 
-        # # 3. Конвертируем numpy array в PIL Image
-        # # В pipeline.py возвращается images[0], который уже в uint8
-        # img = Image.fromarray(output_array)
+        latents_list = None
+        
+        return {
+            "image": img_base64,        # Картинка для мгновенного отображения
+            "file_path": file_path,     # Путь для будущего апскейла
+            "file_name": file_name,
+            "latents": latents_list    # Сами данные латентов
+        }
 
-        # 4. Сохраняем в буфер для отправки по HTTP
-        # buffer = io.BytesIO()
-        # img.save(buffer, format="PNG")
-        # buffer.seek(0)
-
-        # return StreamingResponse(buffer, media_type="image/png")
+        # return FileResponse(
+        #     path=file_path, 
+        #     media_type="image/png", 
+        #     filename=file_name
+        # )
 
     except Exception as e:
         traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/upscale")
+async def upscale_endpoint(request: UpscaleRequest):
+    try:
+        # Проверяем, существует ли исходный файл
+        if not os.path.exists(request.image_path):
+            raise HTTPException(status_code=404, detail="Original image not found")
+
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+        
+        # Вызываем твою функцию апскейла
+        # Она сама сохранит файл внутри через твою функцию save()
+        # Нам нужно только понять, под каким именем он сохранился
+        
+        # Чтобы точно вернуть правильный файл, можно немного модифицировать 
+        # твою функцию save, чтобы она возвращала путь, но пока полагаемся на логику папки
+        inference_esrgan(
+            save_path=UPSCALE_DIR, 
+            image_path=request.image_path, 
+            model_path=request.upscaler_path, 
+            device=device
+        )
+
+        # Берем последний сохраненный файл из папки upscaled
+        files = os.listdir(UPSCALE_DIR)
+        files.sort() # Сортируем, чтобы взять самый свежий (по твоей нумерации 0001, 0002...)
+        last_file = files[-1]
+        full_path = os.path.join(UPSCALE_DIR, last_file)
+
+        return FileResponse(
+            path=full_path, 
+            media_type="image/jpeg", 
+            filename=last_file
+        )
+
+    except Exception as e:
+        print(f"Upscale error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":

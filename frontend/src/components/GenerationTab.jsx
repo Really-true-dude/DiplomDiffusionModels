@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './GenerationTab.css';
+import DiffusionSlider from './DiffusionSlider';
 
 const GenerationTab = () => {
     const [models, setModels] = useState([]);
@@ -18,6 +19,7 @@ const GenerationTab = () => {
     const [lastImagePath, setLastImagePath] = useState("");
     const [latents, setLatents] = useState(null);
     const [loading, setLoading] = useState(false);
+    const [intermediates, setIntermediates] = useState([]);
 
     // Загрузка моделей при монтировании компонента
     useEffect(() => {
@@ -43,6 +45,7 @@ const GenerationTab = () => {
 
     const generateImage = async () => {
         setLoading(true);
+        setIntermediates([]); // Очищаем старые шаги
         if (image && image.startsWith('blob:')) {
             URL.revokeObjectURL(image);
         }
@@ -73,6 +76,7 @@ const GenerationTab = () => {
             const data = await response.json();
             setImage(`data:image/png;base64,${data.image}`);
             setLastImagePath(data.file_path);
+            setIntermediates(data.intermediates.map(img => `data:image/png;base64,${img}`));
             setLatents(data.latents);
         } catch (err) {
             console.error("Generation error:", err);
@@ -201,32 +205,16 @@ const GenerationTab = () => {
                         </div>
                     )}
                 </section>
-                {/* <section className="preview-panel">
-                    {image ? (
-                        <div className="result-card">
-                            <div className="image-frame">
-                                <img src={image} alt="Generated result" />
-                            </div>
-                            <div className="result-metadata">
-                                <div className="path-info">
-                                    <span className="label">Server Path:</span>
-                                    <code className="path-text">{lastImagePath}</code>
-                                </div>
-                                <a className="download-action-btn" href={image} download={`gen_${seed || 'rand'}.png`}>
-                                    Download PNG
-                                </a>
-                            </div>
-                        </div>
-                    ) : (
-                        <div className="empty-state">
-                            <div className="placeholder-icon">{loading ? "⚡" : "🖼️"}</div>
-                            <p>{loading ? "Neural networks are dreaming..." : "Your creation will appear here"}</p>
-                            {loading && <div className="progress-bar-wrap"><div className="progress-bar-fill"></div></div>}
-                        </div>
-                    )}
-                </section> */}
             </div>
+            <DiffusionSlider 
+                intermediates={intermediates} 
+                totalSteps={parseInt(steps)}
+                width={width}
+                height={height}
+            />
         </div>
+
+        
     );
 };
 

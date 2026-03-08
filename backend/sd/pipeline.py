@@ -24,6 +24,8 @@ def generate(prompt: str,
     LATENTS_WIDTH = WIDTH // 8
     LATENTS_HEIGHT = HEIGHT // 8
 
+    intermediate_images = []
+
     with torch.no_grad():
         if not (0 < strength <= 1):
             raise ValueError("Strength must be between 0 and 1")
@@ -104,6 +106,7 @@ def generate(prompt: str,
 
         diffusion = models["diffusion"]
         diffusion.to(device)
+        decoder = models["decoder"]
 
         timesteps = tqdm(sampler.timesteps)
         for i, timestep in enumerate(timesteps):
@@ -127,21 +130,18 @@ def generate(prompt: str,
             # Remove the noise predicted by the UNET with Sampler(Scheduler)
             latents = sampler.step(timestep, latents, model_output)
 
+            # Saving intermidiate results
+            is_last_step = (i + 1) == n_inference_steps
+            if (i + 1) % 5 == 0 and not is_last_step:
+                print(f"Saving intermediate: {i+1} step..")
+                intermediate_images.append(decode_latents(latents, decoder, device, to_idle))
+
         to_idle(diffusion)
+        print(f"Saving final image")
+        final_image = decode_latents(latents, decoder, device, to_idle)
+        intermediate_images.append(final_image)
 
-        decoder = models["decoder"]
-        decoder.to(device)
-
-        images = decoder(latents)
-        to_idle(decoder)
-
-        images = rescale(images, (-1, 1), (0, 255), clamp=True)
-        # (Batch, Channels, Height, Width) -> (Batch, Height, Width, Channels)
-        images = images.permute(0, 2, 3, 1)
-        images = images.to("cpu", torch.uint8).numpy()
-
-
-        return images[0]
+        return intermediate_images
         
 def rescale(x, old_range, new_range, clamp=False):
     old_min, old_max = old_range
@@ -162,3 +162,14 @@ def get_time_embedding(timestep):
     x = torch.tensor([timestep], dtype=torch.float32)[: , None] * freqs[None]
     # (1, 320)
     return torch.cat([torch.cos(x), torch.sin(x)], dim=-1)
+
+def decode_latents(latents, decoder, device, to_idle):
+    """Вспомогательная функция для превращения латентов в картинку"""
+    decoder.to(device)
+    images = decoder(latents)
+    to_idle(decoder)
+
+    images = rescale(images, (-1, 1), (0, 255), clamp=True)
+    images = images.permute(0, 2, 3, 1)
+    images = images.to("cpu", torch.uint8).numpy()
+    return images[0]

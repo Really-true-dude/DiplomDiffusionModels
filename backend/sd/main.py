@@ -102,12 +102,58 @@ async def list_models():
     except Exception as e:
         return {"error": str(e)}
 
-@app.post("/generate/")
-async def generate_endpoint(request: GenerateRequest):
-    try:
-        models = get_models(request.model_path)
+# @app.post("/generate/")
+# async def generate_endpoint(request: GenerateRequest):
+#     try:
+#         models = get_models(request.model_path)
 
-        output_image = generate(
+#         output_image = generate(
+#             prompt=request.prompt,
+#             uncond_prompt=request.uncond_prompt,
+#             input_image=None,
+#             models=models,
+#             n_inference_steps=request.steps,
+#             WIDTH=request.width,
+#             HEIGHT=request.height,
+#             seed=request.seed,
+#             device="cuda" if torch.cuda.is_available() else "cpu",
+#             tokenizer = tokenizer
+#         )
+
+#         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+#         unique_id = uuid.uuid4().hex[:6]
+#         file_name = f"{unique_id}_{timestamp}.png"
+#         file_path = os.path.join(OUTPUT_DIR, file_name)
+
+#         print(f"Saving image in path: {file_path}..", end = '\t')
+#         pil_img = Image.fromarray(output_image)
+#         pil_img.save(file_path)
+#         print(f"Image saved.")
+
+#         buffered = BytesIO()
+#         pil_img.save(buffered, format="PNG")
+#         img_base64 = base64.b64encode(buffered.getvalue()).decode('utf-8')
+
+#         latents_list = None
+        
+#         return {
+#             "image": img_base64,       
+#             "file_path": file_path,   
+#             "file_name": file_name,
+#             "latents": latents_list  
+#         }
+
+#     except Exception as e:
+#         traceback.print_exc()
+#         raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/generate/")
+async def generate_image(request: GenerateRequest):
+     try:
+        models = get_models(request.model_path)
+        # Он вернет список: [img_step5, img_step10, ..., final_img]
+        all_images_np = generate(
             prompt=request.prompt,
             uncond_prompt=request.uncond_prompt,
             input_image=None,
@@ -120,39 +166,40 @@ async def generate_endpoint(request: GenerateRequest):
             tokenizer = tokenizer
         )
 
+        # 2. Функция для конвертации numpy -> Base64
+        def to_base64(img_np):
+            pil_img = Image.fromarray(img_np)
+            buff = BytesIO()
+            pil_img.save(buff, format="PNG")
+            return base64.b64encode(buff.getvalue()).decode("utf-8")
+
+        # 3. Кодируем все промежуточные изображения
+        # Кроме последнего, так как последнее мы обработаем отдельно
+        intermediates_b64 = [to_base64(img) for img in all_images_np[:-1]]
+
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         unique_id = uuid.uuid4().hex[:6]
         file_name = f"{unique_id}_{timestamp}.png"
         file_path = os.path.join(OUTPUT_DIR, file_name)
 
-        print(f"Saving image in path: {file_path}..", end = '\t')
-        pil_img = Image.fromarray(output_image)
-        pil_img.save(file_path)
-        print(f"Image saved.")
+        # 4. Сохраняем ТОЛЬКО финальное изображение на диск
+        final_np = all_images_np[-1]
+        final_pil = Image.fromarray(final_np)
+        final_pil.save(file_path)
 
-        buffered = BytesIO()
-        pil_img.save(buffered, format="PNG")
-        img_base64 = base64.b64encode(buffered.getvalue()).decode('utf-8')
+        intermediates_b64.append(to_base64(final_np))
 
-        latents_list = None
-        
+        # 5. Возвращаем ответ
         return {
-            "image": img_base64,        # Картинка для мгновенного отображения
-            "file_path": file_path,     # Путь для будущего апскейла
-            "file_name": file_name,
-            "latents": latents_list    # Сами данные латентов
+            "image": to_base64(final_np),          # Финальное в Base64 для мгновенного показа
+            "intermediates": intermediates_b64,     # Массив промежуточных в Base64
+            "file_path": file_path,                 # Путь только к одному файлу
+            "seed": request.seed
         }
-
-        # return FileResponse(
-        #     path=file_path, 
-        #     media_type="image/png", 
-        #     filename=file_name
-        # )
-
-    except Exception as e:
+     
+     except Exception as e:
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
-
 
 @app.post("/upscale")
 async def upscale_endpoint(request: UpscaleRequest):

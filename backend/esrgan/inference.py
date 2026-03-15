@@ -7,6 +7,9 @@ from albumentations.pytorch import ToTensorV2
 from model import Generator, initialize_weights
 from dict_converter import convert_model_weights
 import os
+import uuid
+from datetime import datetime
+
 
 def count_digits(num: int) -> int:
     digits = 1
@@ -38,6 +41,17 @@ def save(save_path: str, output_image: torch.Tensor) -> str:
     
     return image_path
 
+def save_upscaled(save_path: str, output_image: torch.Tensor) -> str:
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    unique_id = uuid.uuid4().hex[:6]
+    file_name = f"{unique_id}_{timestamp}.png"
+    file_path = os.path.join(save_path, file_name)
+
+    save_image(output_image, file_path)
+    print(f"Image saved: {file_path}")
+
+    return file_path
+
 def load_model(checkpoint_path: str, model: torch.nn.Module, device = "cpu"):
     if checkpoint_path == "esrgan/weights/R-ESRGAN_x4.pth":
         checkpoint = convert_model_weights(checkpoint_path, device=device)
@@ -48,7 +62,7 @@ def load_model(checkpoint_path: str, model: torch.nn.Module, device = "cpu"):
     
     model.load_state_dict(checkpoint["params_ema"], strict = True)
 
-def upscale(save_path: str, gen: torch.nn.Module, image_path: str, device):
+def upscale(save_path: str, gen: torch.nn.Module, image_path: str, device) -> str:
 
     transform = A.Compose([
         A.Normalize(mean=(0, 0, 0), std = (1, 1, 1)),
@@ -61,10 +75,13 @@ def upscale(save_path: str, gen: torch.nn.Module, image_path: str, device):
     with torch.no_grad():
         upscaled_img = gen(transform(image=np.asarray(image))["image"].unsqueeze(0).to(device))
     
-    save(save_path, upscaled_img)
+    # save(save_path, upscaled_img)
+    file_path = save_upscaled(save_path, upscaled_img)
+    
+    return file_path
     
 
-def inference_esrgan(save_path: str, image_path: str, model_path: str, device: str = "cpu"):
+def inference_esrgan(save_path: str, image_path: str, model_path: str, device: str = "cpu") -> str:
     print(f"Upscaling the image...")
     print(f"Image path: {image_path} | Using upscaler path: {model_path}" )
     
@@ -74,5 +91,7 @@ def inference_esrgan(save_path: str, image_path: str, model_path: str, device: s
     initialize_weights(gen)
     load_model(model_path, gen, device)
 
-    upscale(save_path, gen, image_path, device)
+    upscaled_path = upscale(save_path, gen, image_path, device)
+
+    return upscaled_path
     

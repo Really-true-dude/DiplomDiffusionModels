@@ -7,7 +7,7 @@ import gc
 import uuid
 import os
 import traceback
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, UploadFile, File
 from fastapi.responses import FileResponse
 # from fastapi.responses import StreamingResponse
 from PIL import Image
@@ -16,10 +16,14 @@ from typing import Optional
 from transformers import CLIPTokenizer
 from torchvision.utils import save_image
 from datetime import datetime
+import tempfile
+import sys
 
 # Импортируем вашу функцию и загрузчик из существующих файлов
 from pipeline import generate
 from model_loader import preload_models_from_standard_weights 
+sys.path.append("esrgan/")
+from inference import inference_esrgan, save
 
 app = FastAPI()
 
@@ -40,6 +44,10 @@ UPSCALE_DIR = "output/upscaled/"
 MODEL_DIR = "data/" # путь к моделям
 MODELS_CACHE = {}
 CURRENT_MODEL_PATH = None
+UPSCALER_PATH = "esrgan/weights/R-ESRGAN_x4.pth"
+SAVE_PATH = "output/upscaled/"
+
+
 
 # tokenizer
 try:
@@ -202,42 +210,26 @@ async def generate_image(request: GenerateRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/upscale")
-async def upscale_endpoint(request: UpscaleRequest):
+async def upscale_image(file: UploadFile = File(...)):
+    temp_dir = tempfile.gettempdir()
+    input_path = os.path.join(temp_dir, f"input_{uuid.uuid4()}.png")
+
+    with open(input_path, "wb") as buffer:
+        buffer.write(await file.read())
+
     try:
-        # Проверяем, существует ли исходный файл
-        if not os.path.exists(request.image_path):
-            raise HTTPException(status_code=404, detail="Original image not found")
+        upscaled_path = inference_esrgan(save_path = SAVE_PATH, image_path = input_path, model_path = UPSCALER_PATH, device="cuda" if torch.cuda.is_available() else "cpu")
+            
+        if upscaled_path and os.path.exists(upscaled_path):
+            with open(upscaled_path, "rb") as f:
+                encoded_image = base64.b64encode(f.read()).decode('utf-8')
+            return {"image": encoded_image}
+        else:
+            return {"error": "Upscaled file not found"}, 500
 
-        device = "cuda" if torch.cuda.is_available() else "cpu"
-        
-        # Вызываем твою функцию апскейла
-        # Она сама сохранит файл внутри через твою функцию save()
-        # Нам нужно только понять, под каким именем он сохранился
-        
-        # Чтобы точно вернуть правильный файл, можно немного модифицировать 
-        # твою функцию save, чтобы она возвращала путь, но пока полагаемся на логику папки
-        inference_esrgan(
-            save_path=UPSCALE_DIR, 
-            image_path=request.image_path, 
-            model_path=request.upscaler_path, 
-            device=device
-        )
+    finally:
+        if os.path.exists(input_path): os.remove(input_path)
 
-        # Берем последний сохраненный файл из папки upscaled
-        files = os.listdir(UPSCALE_DIR)
-        files.sort() # Сортируем, чтобы взять самый свежий (по твоей нумерации 0001, 0002...)
-        last_file = files[-1]
-        full_path = os.path.join(UPSCALE_DIR, last_file)
-
-        return FileResponse(
-            path=full_path, 
-            media_type="image/jpeg", 
-            filename=last_file
-        )
-
-    except Exception as e:
-        print(f"Upscale error: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)

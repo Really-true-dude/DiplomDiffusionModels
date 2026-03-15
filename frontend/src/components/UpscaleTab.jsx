@@ -1,73 +1,96 @@
 import React, { useState } from 'react';
+import './UpscaleTab.css';
 
 const UpscaleTab = () => {
-  const [selectedFile, setSelectedFile] = useState(null);
-  const [previewUrl, setPreviewUrl] = useState(null);
-  const [upscaledImage, setUpscaledImage] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [imagePreview, setImagePreview] = useState(null); // Для тега <img> (превью)
+  const [rawFile, setRawFile] = useState(null);           // Сам объект файла (для бэкенда)
+  const [result, setResult] = useState(null);
+  const [isProcessing, setIsProcessing] = useState(false);
 
-  const handleFileChange = (e) => {
+  const handleUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
-      setSelectedFile(file);
-      setPreviewUrl(URL.createObjectURL(file));
-      setUpscaledImage(null); // Сброс предыдущего результата
+      setRawFile(file); // КЛАДЕМ СЮДА ОБЪЕКТ ФАЙЛА
+      setImagePreview(URL.createObjectURL(file)); // КЛАДЕМ СЮДА ССЫЛКУ ДЛЯ ПРЕДПРОСМОТРА
     }
   };
 
   const handleUpscale = async () => {
-    if (!selectedFile) return;
-    setLoading(true);
+    if (!rawFile) { // Проверяем наличие именно файла
+      alert("Сначала выберите файл!");
+      return;
+    }
 
+    setIsProcessing(true);
     const formData = new FormData();
-    formData.append("file", selectedFile);
+    
+    // Отправляем именно rawFile (объект File), а не строковую ссылку imagePreview
+    formData.append('file', rawFile); 
 
     try {
-      // Отправляем файл на эндпоинт апскейла
-      const response = await fetch("http://localhost:8000/upscale-file/", {
+      const response = await fetch("http://localhost:8000/upscale", {
         method: "POST",
         body: formData,
       });
 
-      if (!response.ok) throw new Error("Upscale failed");
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("Ошибка сервера:", errorData);
+        return;
+      }
 
-      const blob = await response.blob();
-      setUpscaledImage(URL.createObjectURL(blob));
+      const data = await response.json();
+      setResult(`data:image/png;base64,${data.image}`);
     } catch (err) {
-      console.error(err);
-      alert("Error during upscale");
+      console.error("Ошибка при запросе:", err);
     } finally {
-      setLoading(false);
+      setIsProcessing(false);
     }
   };
 
   return (
-    <div className="upscale-container">
-      <h2>Image Upscale (ESRGAN)</h2>
-      
-      <div className="upload-section">
-        <input type="file" accept="image/*" onChange={handleFileChange} />
-        {previewUrl && (
-          <div className="preview">
-            <p>Original Preview:</p>
-            <img src={previewUrl} alt="Preview" style={{ maxWidth: '300px' }} />
-          </div>
-        )}
+    <div className="upscale-container fade-in">
+      <div className="upscale-header">
+        <h2>Image Upscaler <span className="badge">AI x4</span></h2>
+        <p>Увеличение разрешения без потери качества с помощью Real-ESRGAN</p>
       </div>
 
-      <button onClick={handleUpscale} disabled={!selectedFile || loading}>
-        {loading ? "Upscaling..." : "Start Upscale"}
-      </button>
-
-      <hr />
-
-      {upscaledImage && (
-        <div className="result-section">
-          <h3>Upscaled Result:</h3>
-          <img src={upscaledImage} alt="Upscaled" style={{ width: '100%' }} />
-          <a href={upscaledImage} download="upscaled.png">Download Result</a>
+      <div className="upscale-workspace">
+        {/* Секция загрузки/оригинала */}
+        <div className={`drop-zone ${imagePreview ? 'has-image' : ''}`}>
+          {!imagePreview ? (
+            <label className="upload-btn">
+              <input type="file" onChange={handleUpload} hidden />
+              <span>📁 Выберите изображение</span>
+            </label>
+          ) : (
+            <img src={imagePreview} alt="Original" className="preview-img" />
+          )}
         </div>
-      )}
+
+        {/* Центральная кнопка */}
+        <div className="action-center">
+          <button 
+            className={`run-btn ${isProcessing ? 'loading' : ''}`}
+            onClick={handleUpscale}
+            disabled={!imagePreview || isProcessing}
+          >
+            {isProcessing ? "Увеличиваем..." : "ВЫПОЛНИТЬ АПСКЕЙЛ"}
+          </button>
+        </div>
+
+        {/* Секция результата */}
+        <div className="result-zone">
+          {result ? (
+            <div className="result-wrapper">
+               <img src={result} alt="Upscaled" />
+               <a href={result} download="upscaled.png" className="download-link">Скачать результат</a>
+            </div>
+          ) : (
+            <div className="empty-result">Результат появится здесь</div>
+          )}
+        </div>
+      </div>
     </div>
   );
 };

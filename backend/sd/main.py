@@ -1,6 +1,7 @@
 import uvicorn
 from fastapi.middleware.cors import CORSMiddleware
 import torch
+from torch import nn
 import base64
 from io import BytesIO
 import gc
@@ -18,6 +19,7 @@ from torchvision.utils import save_image
 from datetime import datetime
 import tempfile
 import sys
+import numpy as np
 
 # Импортируем вашу функцию и загрузчик из существующих файлов
 from pipeline import generate
@@ -46,7 +48,7 @@ MODELS_CACHE = {}
 CURRENT_MODEL_PATH = None
 UPSCALER_PATH = "esrgan/weights/R-ESRGAN_x4.pth"
 SAVE_PATH = "output/upscaled/"
-
+VAE_MODEL_PATH = "data/VAE_decoder_10ep.pth"
 
 
 # tokenizer
@@ -230,6 +232,52 @@ async def upscale_image(file: UploadFile = File(...)):
     finally:
         if os.path.exists(input_path): os.remove(input_path)
 
+### Upscaler Visualizer
+class Decoder(nn.Module):
+    def __init__(self, latent_dim=2):
+        super().__init__()
+        self.fc = nn.Linear(latent_dim, 64 * 7 * 7)
+        self.deconv = nn.Sequential(
+            nn.ConvTranspose2d(64, 64, 3, stride=2, padding=1, output_padding=1), nn.ReLU(),
+            nn.ConvTranspose2d(64, 32, 3, stride=2, padding=1, output_padding=1), nn.ReLU(),
+            nn.Conv2d(32, 1, 3, padding=1), nn.Sigmoid()
+        )
+
+    def forward(self, z):
+        x = self.fc(z).view(-1, 64, 7, 7)
+        return self.deconv(x)
+
+# Loading your trained model here
+LATENT_DIM = 2
+model = Decoder(latent_dim=LATENT_DIM)
+model.load_state_dict(torch.load(VAE_MODEL_PATH, map_location=torch.device('cpu'), weights_only=True))
+model.eval()
+
+@app.get("/latent-map")
+async def get_latent_map():
+    """
+    Returns a sample of latent coordinates and their labels 
+    to draw the background scatter plot in React.
+    """
+    # In production, you'd pass test images through the Encoder once 
+    # and cache these results.
+    num_samples = 1000
+    mock_z = np.random.normal(0, 1, (num_samples, 2)).tolist()
+    mock_labels = np.random.randint(0, 10, num_samples).tolist()
+    return {"points": mock_z, "labels": mock_labels}
+
+@app.get("/vae_viz")
+async def generate(z1: float, z2: float):
+    # Convert inputs to Tensor
+    z = torch.tensor([[z1, z2]], dtype=torch.float32)
+    
+    with torch.no_grad():
+        output = model(z) # Shape: [1, 1, 28, 28]
+    
+    # Convert to a flat list or nested list for JSON
+    img_array = output.squeeze().numpy().tolist()
+    
+    return {"image": img_array}
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)

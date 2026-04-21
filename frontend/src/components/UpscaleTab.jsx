@@ -2,21 +2,21 @@ import React, { useState } from 'react';
 import './UpscaleTab.css';
 
 const UpscaleTab = () => {
-  const [imagePreview, setImagePreview] = useState(null); // Для тега <img> (превью)
-  const [rawFile, setRawFile] = useState(null);           // Сам объект файла (для бэкенда)
+  const [imagePreview, setImagePreview] = useState(null); 
+  const [rawFile, setRawFile] = useState(null);           
   const [result, setResult] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
 
   const handleUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
-      setRawFile(file); // КЛАДЕМ СЮДА ОБЪЕКТ ФАЙЛА
-      setImagePreview(URL.createObjectURL(file)); // КЛАДЕМ СЮДА ССЫЛКУ ДЛЯ ПРЕДПРОСМОТРА
+      setRawFile(file); 
+      setImagePreview(URL.createObjectURL(file)); 
     }
   };
 
   const handleUpscale = async () => {
-    if (!rawFile) { // Проверяем наличие именно файла
+    if (!rawFile) { 
       alert("Сначала выберите файл!");
       return;
     }
@@ -24,7 +24,6 @@ const UpscaleTab = () => {
     setIsProcessing(true);
     const formData = new FormData();
     
-    // Отправляем именно rawFile (объект File), а не строковую ссылку imagePreview
     formData.append('file', rawFile); 
 
     try {

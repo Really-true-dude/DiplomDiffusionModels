@@ -88,6 +88,10 @@ const GenerationTab = () => {
 
     return (
         <div className="gen-container tab-fade-in">
+            <div className="upscale-header">
+                <h2>Image Generation <span className="badge">SD1</span></h2>
+                <p>Text-to-Image synthesis using a multi-network architecture</p>
+            </div>
             <div className="generation-layout">
                 <aside className="controls-panel">
                     <div className="panel-section">
@@ -98,6 +102,7 @@ const GenerationTab = () => {
                                 value={positivePrompt} 
                                 onChange={(e) => setPositivePrompt(e.target.value)} 
                                 placeholder="Describe what you want to create..."
+                                maxLength={77}
                             />
                         </div>
                         <div className="input-wrapper">
@@ -106,6 +111,7 @@ const GenerationTab = () => {
                                 value={negativePrompt} 
                                 onChange={(e) => setNegativePrompt(e.target.value)} 
                                 placeholder="Describe what to avoid..."
+                                maxLength={77}
                             />
                         </div>
                     </div>
@@ -163,7 +169,7 @@ const GenerationTab = () => {
                         onClick={generateImage} 
                         disabled={loading}
                     >
-                        {loading ? <span className="spinner"></span> : "Generate Masterpiece"}
+                        {loading ? <span className="spinner"></span> : "Generate Image"}
                     </button>
                 </aside>
 
@@ -175,12 +181,12 @@ const GenerationTab = () => {
                                 <img 
                                     src={image} 
                                     alt="Generated result" 
-                                    style={{ 
-                                        width: `${width}px`, 
-                                        height: `${height}px`,
-                                        maxWidth: '100%',
-                                        maxHeight: '100%'
-                                    }} 
+                                    // style={{ 
+                                    //     width: `${width}px`, 
+                                    //     height: `${height}px`,
+                                    //     maxWidth: '100%',
+                                    //     maxHeight: '100%'
+                                    // }} 
                                 />
                             </div>
                             <div className="result-metadata">
@@ -196,7 +202,7 @@ const GenerationTab = () => {
                     ) : (
                         <div className="empty-state">
                             <div className="placeholder-icon">{loading ? "⚡" : "🖼️"}</div>
-                            <p>{loading ? "Neural networks are dreaming..." : "Your creation will appear here"}</p>
+                            <p>{loading ? "Your image is being generated..." : "Your result will appear here"}</p>
                             {loading && (
                                 <div className="progress-bar-wrap">
                                     <div className="progress-bar-fill"></div>
@@ -207,6 +213,7 @@ const GenerationTab = () => {
                 </section>
             </div>
             <DiffusionSlider 
+                // className="diffusion-slider-with-margin"
                 intermediates={intermediates} 
                 totalSteps={parseInt(steps)}
                 width={width}

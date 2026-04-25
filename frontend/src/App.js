@@ -9,26 +9,55 @@ const HomeTab = () => {
 
   const galleryData = [
     {
-      url: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=800",
-      prompt: "Abstract digital art, flowing neon lines, deep purple and cyan, high contrast, 8k",
-      negative: "text, low quality, blurry, distorted",
+      url: "images/burger.jpg",
+      prompt: "a big and tasty burger",
+      negative: "bad resolution, worst quality, blurry, ugly",
       width: "512",
-      height: "728",
-      seed: "4092",
-      steps: "30",
-      model: "v1-5-pruned.safetensors"
+      height: "512",
+      seed: "8547",
+      steps: "20",
+      model: "animerge_v50.safetensors"
     },
     {
-      url: "https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?auto=format&fit=crop&w=800",
-      prompt: "Ethereal mountain landscape, morning mist, cinematic lighting, sharp focus",
-      negative: "people, buildings, noisy, grainy",
-      seed: "1102",
+      url: "images/girl.jpg",
+      prompt: "1woman, black hair, short hair, bun, red eyes, black dress, portrait",
+      negative: "bad resolution, worst quality, extra digits, ugly",
+      seed: "42",
       width: "512",
-      height: "728",
-      steps: "50",
-      model: "SDXL_Base_1.0"
+      height: "768",
+      steps: "20",
+      model: "animerge_v50.safetensors"
+    },
+    {
+      url: "images/car.jpg",
+      prompt: "a luxury porshe supercar, best quality, masterpiece, no license plate",
+      negative: "bad resolution, worst quality, blurry, ugly, license plate",
+      seed: "7449",
+      width: "768",
+      height: "512",
+      steps: "20",
+      model: "animerge_v50.safetensors"
+    },
+    {
+      url: "images/cat.jpg",
+      prompt: "black cat, masterpiece, best quality",
+      negative: "bad resolution, worst quality, extra digits, ugly",
+      seed: "42",
+      width: "512",
+      height: "512",
+      steps: "20",
+      model: "animerge_v50.safetensors"
+    },
+    {
+      url: "images/cactus.jpg",
+      prompt: "a cactus in a desert",
+      negative: "bad resolution, worst quality, blurry, ugly",
+      seed: "3450",
+      width: "512",
+      height: "512",
+      steps: "20",
+      model: "animerge_v50.safetensors"
     }
-    // Добавьте остальные объекты сюда...
   ];
 
   const nextSlide = () => setCurrentSlide((prev) => (prev + 1) % galleryData.length);
@@ -37,20 +66,30 @@ const HomeTab = () => {
   return (
     <div className="tab-fade-in">
       <section className="hero-section">
-        <h1>Stable Diffusion Laboratory</h1>
-        <p className="subtitle">Профессиональная среда для генерации и глубокого анализа ИИ-изображений</p>
+        <h1>Diffusion Laboratory <span className="badge">Based on SD1</span></h1>
+        <p className="subtitle">Specialized environment for image generation and reaserch of generation processes and using AI for image processing</p>
       </section>
       
       <div className="home-grid">
         <div className="home-card">
-          <h3>Генерация</h3>
-          <p>Создание изображений из текста с использованием CLIP и UNet. Полный контроль над сидом и шагами сэмплера.</p>
-          <img src="https://images.unsplash.com/photo-1675271591211-126ad94e495d?auto=format&fit=crop&w=400" alt="Gen Example" />
+          <h3>Generation</h3>
+          <p>
+            This module provides Text-to-Image synthesis by leveraging a multi-network architecture: 
+            CLIP encodes text prompts into a mathematical space that the UNet can understand, which then iteratively refines random noise into a coherent, high-fidelity image. 
+          </p>
+          <div className="home-image-frame">
+            <img src="https://cdn3.pixelcut.app/7/21/ai_image_generator_header_592407ec5d.png" alt="Gen Example" />
+          </div>
         </div>
         <div className="home-card">
           <h3>Upscale</h3>
-          <p>Увеличение разрешения через ESRGAN. Восстановление деталей и четкости на краях объектов.</p>
-          <img src="https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?auto=format&fit=crop&w=400" alt="Upscale Example" />
+          <p>
+            This module utilizes ESRGAN (Enhanced Super-Resolution Generative Adversarial Networks) to upscale low-resolution images while preserving structural integrity. 
+            Unlike standard interpolation, the model reconstructs missing textures and high-frequency details.
+          </p>
+          <div className="home-image-frame">
+            <img src="https://static.futureshareai.com/glb_features/free_ai_image_upscaler_image_1.webp" alt="Upscale Example" />
+          </div>
         </div>
       </div>
 
@@ -58,21 +97,22 @@ const HomeTab = () => {
         {/* Первый элемент: Текст слева, Изображение справа */}
         <div className="feature-item">
           <div className="feature-info">
-            <div className="badge">AI Model</div>
+            {/* <div className="badge">AI Model</div> */}
             <h3>Latent Space Visualization</h3>
             <p>
-              Исследуйте "скрытое пространство" модели. Визуализация 4-х каналов латентов 
-              позволяет увидеть, как нейросеть формирует структуру и цвета до того, 
-              как VAE-декодер превратит их в финальные пиксели.
+              This visualization is an interactive latent space explorer designed to bridge the gap between abstract neural network data and human-interpretable images. 
+              It allows researchers to navigate the "thought process" of a Variational Autoencoder (VAE) by mapping thousands of high-dimensional inputs into a color-coded 2D coordinate system.
+              By observing how digits morph and blend at the boundaries of different clusters, you can evaluate how well the model has learned the underlying structure and features of the dataset.
             </p>
           </div>
-          <div className="feature-visual latent-preview">
+          <div className="home-image-frame-vae">
+            <img src="images/vae.png" alt="VAE viz"/>
             {/* Здесь можно вставить реальное изображение или оставить пустой div со стилями */}
           </div>
         </div>
 
         {/* Второй элемент: Изображение слева, Текст справа */}
-        <div className="feature-item reverse">
+        {/* <div className="feature-item reverse">
           <div className="feature-info">
             <div className="badge">Analysis</div>
             <h3>Attention Heatmaps</h3>
@@ -83,13 +123,16 @@ const HomeTab = () => {
             </p>
           </div>
           <div className="feature-visual heatmap-preview">
-            {/* Плейсхолдер для изображения тепловой карты */}
+            empty text
           </div>
-        </div>
+        </div> */}
       </div>
 
       <section className="slider-section">
-        <h2>Лабораторная галерея</h2>
+        <div className='Title-Gallery'>
+          <h2>Laboratory Gallery <span className="badge">AI Images</span></h2>
+          <p>Visualize the creations of AI and the options. Inspire or replicate the results</p>
+        </div>
         <div className="slider-container">
           <button className="slider-nav prev" onClick={prevSlide}>&#10094;</button>
           
@@ -115,7 +158,7 @@ const HomeTab = () => {
                   <strong>{galleryData[currentSlide].width}</strong>
                 </div>
                 <div className="info-item">
-                  <span>Heigth</span>
+                  <span>Height</span>
                   <strong>{galleryData[currentSlide].height}</strong>
                 </div>
                 <div className="info-item">
@@ -159,13 +202,13 @@ function App() {
   return (
     <div className="app-container">
       <header className="navbar">
-        <div className="nav-logo">SD_LAB<span>v1.5</span></div>
+        <div className="nav-logo" onClick={() => setActiveTab('home')}>DIFFUSION LAB<span>SD1</span></div>
         <nav className="nav-links">
           <button className={activeTab === 'home' ? 'active' : ''} onClick={() => setActiveTab('home')}>Home</button>
           <button className={activeTab === 'generate' ? 'active' : ''} onClick={() => setActiveTab('generate')}>Generation</button>
           <button className={activeTab === 'upscale' ? 'active' : ''} onClick={() => setActiveTab('upscale')}>Upscale</button>
           <button className={activeTab === 'latent' ? 'active' : ''} onClick={() => setActiveTab('latent')}>Latents</button>
-          <button className={activeTab === 'heatmap' ? 'active' : ''} onClick={() => setActiveTab('heatmap')}>Heatmaps</button>
+          {/* <button className={activeTab === 'heatmap' ? 'active' : ''} onClick={() => setActiveTab('heatmap')}>Heatmaps</button> */}
         </nav>
       </header>
 

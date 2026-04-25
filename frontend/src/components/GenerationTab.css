@@ -275,10 +275,21 @@ textarea {
 
 /* Diffusion Slider */
 .diffusion-slider-container {
+    margin-top: 30px;
     width: 100%;
     display: flex;
     flex-direction: column;
     align-items: center;
+    background: #0f0f0f;
+    border-radius: 24px;
+    border: 2px dashed #252525;
+    padding-left: 10px;
+    padding-right: 10px;
+    padding-bottom: 30px
+}
+
+.diffusion-slider-header {
+    color: var(--accent, #bb86fc)
 }
 
 .image-frame {
@@ -286,6 +297,18 @@ textarea {
     overflow: hidden;
     border-radius: 8px;
     background: #1a1a1a;
+    
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.image-frame img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain; /* Keeps the entire image visible */
 }
 
 .step-badge {
@@ -293,13 +316,13 @@ textarea {
     top: 10px;
     right: 10px;
     background: rgba(0, 0, 0, 0.75);
-    color: #00ffcc; /* Ваш акцентный цвет */
-    padding: 4px 12px;
+    color: #fff/*#00ffcc */;
+    padding: 6px 12px;
     border-radius: 12px;
     font-size: 0.8rem;
     font-family: monospace;
     backdrop-filter: blur(4px);
-    border: 1px solid rgba(0, 255, 204, 0.3);
+    border: var(--accent, #bb86fc)/*1px solid rgba(0, 255, 204, 0.3)*/;
 }
 
 .slider-controls {
@@ -323,10 +346,10 @@ textarea {
     -webkit-appearance: none;
     width: 18px;
     height: 18px;
-    background: #00ffcc;
+    background: var(--accent, #bb86fc)/* #00ffcc */;
     border-radius: 50%;
     cursor: pointer;
-    box-shadow: 0 0 10px rgba(0, 255, 204, 0.5);
+    box-shadow: 0 0 10px rgba(226, 35, 255, 0.5);
     transition: 0.2s;
 }
 

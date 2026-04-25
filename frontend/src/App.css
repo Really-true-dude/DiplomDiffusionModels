@@ -8,6 +8,24 @@
   --border: #2d2d35;
 }
 
+.tab-fade-in {
+  /* text-align: center; */
+  margin-bottom: 40px;
+}
+
+.home-image-frame {
+  overflow: hidden;
+  width: 100%;
+  height: 300px;
+  aspect-ratio: 1 / 1;
+}
+
+.home-image-frame img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
 body {
   margin: 0;
   font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
@@ -32,7 +50,7 @@ body {
   z-index: 1000;
 }
 
-.nav-logo { font-size: 24px; font-weight: 900; letter-spacing: 2px; }
+.nav-logo { font-size: 24px; font-weight: 900; letter-spacing: 2px; cursor: pointer; }
 .nav-logo span { color: var(--accent); font-size: 14px; margin-left: 5px; }
 
 .nav-links button {
@@ -71,6 +89,17 @@ body {
   border: 1px solid var(--border);
 }
 
+.home-card h3 {
+  font-size: 2rem;
+  margin: 15px 0;
+  color: var(--accent-light);
+}
+
+.home-card p {
+  line-height: 1.6;
+  color: var(--text-secondary);
+  font-size: 1.1rem;
+}
 
 /* Контейнер для списка фич */
 .features-list {
@@ -150,8 +179,13 @@ body {
 }
 
 /* Слайдер */
+.Title-Gallery {
+    text-align: center;
+  margin-bottom: 40px;
+}
+
 .slider-section {
-  margin-top: 100px;
+  margin-top: 80px;
   padding-bottom: 50px;
 }
 
@@ -180,6 +214,9 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  /* width: 100%; */
+  width: 600px;
+  aspect-ratio: 1 / 1;
 }
 
 .slide-image-panel img {
@@ -206,6 +243,7 @@ body {
   color: var(--accent);
   margin-bottom: 8px;
   letter-spacing: 1px;
+  font-size: 1.01rem;
 }
 
 .info-group p {
@@ -213,6 +251,7 @@ body {
   font-size: 14px;
   line-height: 1.5;
   color: var(--text-primary);
+  font-size: 1.05rem;
 }
 
 .neg-text { color: #ff5252 !important; opacity: 0.8; }
@@ -246,7 +285,8 @@ body {
 .slider-nav {
   background: var(--bg-card);
   border: 1px solid var(--border);
-  color: white;
+  /* color: white; */
+  color: var(--accent);
   width: 50px;
   height: 50px;
   border-radius: 50%;
@@ -255,7 +295,7 @@ body {
   transition: 0.3s;
 }
 
-.slider-nav:hover { background: var(--accent); border-color: var(--accent); }
+.slider-nav:hover { background: var(--accent); border-color: var(--accent); color: var(--bg-black)}
 
 .slider-dots {
   display: flex;

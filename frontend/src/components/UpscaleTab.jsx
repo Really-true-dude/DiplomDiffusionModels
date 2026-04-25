@@ -50,22 +50,34 @@ const UpscaleTab = () => {
   return (
     <div className="upscale-container fade-in">
       <div className="upscale-header">
-        <h2>Image Upscaler <span className="badge">AI x4</span></h2>
-        <p>Увеличение разрешения без потери качества с помощью Real-ESRGAN</p>
+        <h2>Image Upscaler <span className="badge">x4</span></h2>
+        <p>Increasing resolution without loss of quality using Real-ESRGAN</p>
       </div>
 
       <div className="upscale-workspace">
         {/* Секция загрузки/оригинала */}
         <div className={`drop-zone ${imagePreview ? 'has-image' : ''}`}>
+          <label className="upload-btn">
+            <input type="file" onChange={handleUpload} hidden />
+          {!imagePreview ? (
+              <span>📁 Choose Local Image</span>
+          ) : (
+            <div className='drop-zone-img-frame'>
+              <img src={imagePreview} alt="Original" className="preview-img" />
+            </div>
+          )}
+          </label>
+        </div>
+        {/* <div className={`drop-zone ${imagePreview ? 'has-image' : ''}`}>
           {!imagePreview ? (
             <label className="upload-btn">
               <input type="file" onChange={handleUpload} hidden />
-              <span>📁 Выберите изображение</span>
+              <span>📁 Choose Local Image</span>
             </label>
           ) : (
             <img src={imagePreview} alt="Original" className="preview-img" />
           )}
-        </div>
+        </div> */}
 
         {/* Центральная кнопка */}
         <div className="action-center">
@@ -74,22 +86,34 @@ const UpscaleTab = () => {
             onClick={handleUpscale}
             disabled={!imagePreview || isProcessing}
           >
-            {isProcessing ? "Увеличиваем..." : "ВЫПОЛНИТЬ АПСКЕЙЛ"}
+            {isProcessing ? "Upscaling..." : "UPSCALE"}
           </button>
+          {result ? (
+            <div className="download-link">
+              <a href={result} download="upscaled.png" className='download-action-btn'>Download PNG</a>
+            </div>
+          ) : ""}
         </div>
 
         {/* Секция результата */}
         <div className="result-zone">
           {result ? (
             <div className="result-wrapper">
+              <div className='result-zone-img-frame'>
                <img src={result} alt="Upscaled" />
-               <a href={result} download="upscaled.png" className="download-link">Скачать результат</a>
+              </div>
             </div>
           ) : (
-            <div className="empty-result">Результат появится здесь</div>
+            <div className="empty-result">Result will appear here</div>
           )}
         </div>
       </div>
+      {/* {result ? (
+        <div className="download-link">
+          <p>Your image was succesfuly upscaled</p>
+          <a href={result} download="upscaled.png" className='download-action-btn'>Download Result</a>
+        </div>
+        ) : ""} */}
     </div>
   );
 };

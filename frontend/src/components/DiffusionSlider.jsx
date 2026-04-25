@@ -22,6 +22,7 @@ const DiffusionSlider = ({ intermediates, totalSteps, width, height }) => {
 
     return (
         <div className="diffusion-slider-container">
+            <h1 className="diffusion-slider-header">Visualize Diffusion Process</h1>
             <div className="image-frame">
                 <img 
                     src={intermediates[currentIndex]} 

@@ -267,7 +267,7 @@ async def get_latent_map():
     return {"points": mock_z, "labels": mock_labels}
 
 @app.get("/vae_viz")
-async def generate(z1: float, z2: float):
+async def generate_vae(z1: float, z2: float):
     # Convert inputs to Tensor
     z = torch.tensor([[z1, z2]], dtype=torch.float32)
     

@@ -88,9 +88,12 @@ const LatentVisualizer = () => {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px', fontFamily: 'sans-serif' }}>
-      <h2>Autoencoder Latent Space</h2>
-      
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '15px', fontFamily: 'sans-serif', padding: '40px 20px'}}>
+        <div style={{textAlign: "center", marginBottom: "30px"}}>
+          <h2>Autoencoder Latent Space <span className="badge">VAE</span></h2>
+          <p>Watch in real-time as the VAE decoder morphs abstract 2D coordinates into recognizable images.</p>
+        </div>
+        
       <div style={{ display: 'flex', gap: '40px', alignItems: 'center', background: '#f5f5f5', padding: '30px', borderRadius: '15px' }}>
         
         {/* LATENT SPACE INTERFACE */}
